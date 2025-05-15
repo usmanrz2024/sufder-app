@@ -8,6 +8,6 @@ app.get('/', (_req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Service A running on port ${PORT}`);
+  console.log(`Service A is running on port ${PORT}`);
 });
 
