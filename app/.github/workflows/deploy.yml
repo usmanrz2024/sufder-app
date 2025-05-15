@@ -1,0 +1,49 @@
+name: Deploy to Azure AKS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      REGISTRY_NAME: devopsacr1234
+      RESOURCE_GROUP: devops-rg
+      AKS_CLUSTER: devops-aks
+      IMAGE_TAG: latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Azure CLI - Login to ACR
+      run: az acr login --name $REGISTRY_NAME
+
+    - name: Build and Push Docker Images
+      run: |
+        docker build -t $REGISTRY_NAME.azurecr.io/service-a:$IMAGE_TAG ./service-a
+        docker build -t $REGISTRY_NAME.azurecr.io/service-b:$IMAGE_TAG ./service-b
+        docker push $REGISTRY_NAME.azurecr.io/service-a:$IMAGE_TAG
+        docker push $REGISTRY_NAME.azurecr.io/service-b:$IMAGE_TAG
+
+    - name: Set AKS context
+      uses: azure/aks-set-context@v3
+      with:
+        resource-group: ${{ env.RESOURCE_GROUP }}
+        cluster-name: ${{ env.AKS_CLUSTER }}
+
+    - name: Deploy to AKS
+      run: |
+        kubectl apply -f k8s/service-a-deployment.yaml
+        kubectl apply -f k8s/service-a-service.yaml
+        kubectl apply -f k8s/service-b-deployment.yaml
+        kubectl apply -f k8s/service-b-service.yaml
+
+        

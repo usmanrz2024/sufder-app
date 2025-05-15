@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-b
+  namespace: service-simple-app
+
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-b
+  template:
+    metadata:
+      labels:
+        app: service-b
+    spec:
+      containers:
+      - name: service-b
+        image: devopsacr1234.azurecr.io/service-b:latest
+        imagePullPolicy: Never # using local Docker image
+        ports:
+        - containerPort: 7001
+    
+
